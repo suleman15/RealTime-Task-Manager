@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Ubuntu:wght@300;400;500;700&display=swap");
+      body,
+      * {
+        font-family: Ubuntu;
+      }
+      body {
+        margin: auto;
+        padding: 10px;
+        max-width: 1200px !important;
+      }
+      .form {
+        display: flex;
+        gap: 3px;
+      }
+      .form input {
+        width: 100%;
+        padding: 10px;
+      }
+      button {
+        background-color: dodgerblue;
+        color: white;
+        padding: 5px 10px;
+        text-wrap: nowrap;
+        border: 0px;
+        margin: 0px;
+      }
+      #tasks-list {
+        padding: 0px;
+      }
+      #tasks-list li {
+        display: flex;
+        padding: 5px 25px;
+        align-items: center;
+        border-radius: 5px;
+      }
+      #tasks-list li:hover {
+        background-color: rgba(199, 199, 199, 0.349);
+      }
+      #tasks-list li div {
+        width: 100%;
+      }
+      /* li button {
+        margin-left: 100%;
+      } */
+    </style>
+    <title>Root</title>
+  </head>
+  <body>
+    <h1>Real Time Task Application</h1>
+    <form onsubmit="addTask(event)" class="form">
+      <input type="text" id="new-task" placeholder="Add a new task" />
+      <button type="submit">Add Task</button>
+    </form>
+    <ul
+      id="tasks-list"
+      style="display: flex; gap: 3px; flex-direction: column"
+    ></ul>
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+      const socket = io("http://localhost:3000");
+
+      const tasksList = document.getElementById("tasks-list");
+      const newTaskInput = document.getElementById("new-task");
+
+      function addTask(e) {
+        e.preventDefault();
+        const taskText = newTaskInput.value.trim();
+        if (taskText !== "") {
+          socket.emit("addTask", taskText);
+          newTaskInput.value = "";
+        }
+      }
+
+      function removeTask(index) {
+        socket.emit("removeTask", index);
+      }
+
+      function updateTasks(tasks) {
+        tasksList.innerHTML = tasks
+          .map(
+            (task, index) =>
+              `<li><span style='margin-right:5px; '>${
+                index + 1
+              }.</span><div>${task}</div> <button onclick="removeTask(${index})">Remove</button></li>`
+          )
+          .join("");
+      }
+
+      // Listen for task updates from the server
+      socket.on("updateTasks", updateTasks);
+    </script>
+  </body>
+</html>
